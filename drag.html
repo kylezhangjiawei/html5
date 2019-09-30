@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>拖拽</title>
+  <link rel="stylesheet" href="./css/drag.css">
+</head>
+
+<body>
+  <!--  拖拽表格  -->
+  <section class="table">
+    <div class="tableHead">
+      <p class="tr">
+        <span>名称</span>
+        <span>图标</span>
+        <span>类型</span>
+        <span>状态</span>
+        <span>链接</span>
+        <span>操作</span>
+      </p>
+    </div>
+    <div class="tableBody" id="tableBody" onselectstart="return false">
+      <p class="tr">
+        <span>测试1</span>
+        <span>测试</span>
+        <span>测试</span>
+        <span>测试</span>
+        <span>测试</span>
+        <span>
+          <em><i></i></em>
+        </span>
+      </p>
+      <p class="tr">
+        <span>测试2</span>
+        <span>测试</span>
+        <span>测试</span>
+        <span>测试</span>
+        <span>测试</span>
+        <span>
+          <em><i></i></em>
+        </span>
+      </p>
+      <p class="tr">
+        <span>测试3</span>
+        <span>测试</span>
+        <span>测试</span>
+        <span>测试</span>
+        <span>测试</span>
+        <span>
+          <em><i></i></em>
+        </span>
+      </p>
+      <p class="tr">
+        <span>测试4</span>
+        <span>测试</span>
+        <span>测试</span>
+        <span>测试</span>
+        <span>测试</span>
+        <span>
+          <em><i></i></em>
+        </span>
+      </p>
+      <p class="tr">
+        <span>测试5</span>
+        <span>测试</span>
+        <span>测试</span>
+        <span>测试</span>
+        <span>测试</span>
+        <span>
+          <em><i></i></em>
+        </span>
+      </p>
+      <p class="tr">
+        <span>测试6</span>
+        <span>测试</span>
+        <span>测试</span>
+        <span>测试</span>
+        <span>测试</span>
+        <span>
+          <em><i></i></em>
+        </span>
+      </p>
+    </div>
+  </section>
+
+  <script type="text/javascript">
+    // 获取拖拽的目标
+    let tableBody = document.getElementById('tableBody');
+    let bodyChild = tableBody.children;
+    // p添加Index坐标
+    function addIndex() {
+      for (let i = 0; i < bodyChild.length; i++) {
+        bodyChild[i].index = i;
+      }
+    }
+
+    tableBody.onclick = (e) => {
+      e.stopPropagation();
+      console.log(1)
+      let nodeName = e.target.nodeName.toLowerCase();
+      let node = e.target;    
+      addIndex();
+      if (nodeName === 'i') {
+        // 设置当前元素的背景与样式
+        if (!node.className) {
+          // 未激活
+          node.className = 'choiceIcon';
+          node.parentElement.className = 'choiceIconBack';
+          let index = node.parentElement.parentElement.parentElement.index;
+          sublings(index, bodyChild);
+          // 获取对应p标签
+          let fatherNode = node.parentElement.parentElement.parentElement;
+          shoudldStart(fatherNode)
+        } else {
+          // 已激活
+          node.parentElement.parentElement.parentElement.onmousedown = null;
+          document.onmousemove = null;
+          document.onmouseup = null;
+          node.classList.remove('choiceIcon');
+          node.parentElement.classList.remove('choiceIconBack');
+          node.parentElement.classList.remove('choice');
+        }
+
+      }
+    }
+    // 获取其他兄弟节点并消除样式
+    function sublings(index, node) {
+      let allNode = node;
+      for (let i = 0; i < allNode.length; i++) {
+        if (index !== i) {
+          if (allNode[i].children[allNode[i].children.length - 1].children[0].className) {
+            //  em背景
+            allNode[i].children[allNode[i].children.length - 1].children[0].classList.remove('choiceIconBack');
+          }
+          if (allNode[i].children[allNode[i].children.length - 1].children[0].children[0].className) {
+            // icon图标
+            allNode[i].children[allNode[i].children.length - 1].children[0].children[0].classList.remove('choiceIcon');
+          }
+          allNode[i].onmousedown = null;
+          allNode[i].onmousemove = null;
+          allNode[i].onmouseup = null;
+        }
+      }
+    }
+    // 开始拖拽
+    function shoudldStart(father) {
+      father.onmousedown = (e) => {
+        let ev = e || event;
+        addIndex();
+        let bodyH = tableBody.offsetHeight;  // 获取容器的高度
+        let startPageH = father.index * 50; //默认距离页面可视高度
+        let start = ev.pageY; //当前点击元素的位置
+        // 对所有当前页面上的元素进行绝对定位，然后对选中的z-index进行提高
+        let startIndex = Math.ceil((startPageH - 25) / 50);
+        // 拖动内容浮动
+        console.log(2)
+        let floatData = JSON.parse(JSON.stringify(father));
+        father.classList.add('choice');
+        father.style.top = startPageH + 'px';
+        // 创建一个占位元素
+        let holdP = document.createElement('p');
+        holdP.className = 'tr';
+        holdP.classList.add('hold');
+        tableBody.insertBefore(holdP, tableBody.children[father.index]);
+        document.onmousemove = (e) => {
+          let ev = e || event;
+          let move = ev.pageY - start; //移动了多少距离
+          let moveStep = startPageH + move; //移动后距离当前视图的top距离
+          father.style.top = moveStep + 'px';
+          let moveIndex = Math.ceil((moveStep - 25) / 50);
+          console.log(startIndex, moveIndex, bodyChild.length)
+          if (moveIndex >= 0 && moveIndex <= (bodyChild.length - 2)) {
+            if (moveIndex !== startIndex) {
+            tableBody.removeChild(holdP);
+            let oldData = bodyChild[startIndex];
+            tableBody.insertBefore(bodyChild[moveIndex], tableBody.children[startIndex]);
+            tableBody.insertBefore(oldData, tableBody.children[moveIndex]);
+            tableBody.insertBefore(holdP, tableBody.children[moveIndex]);
+            startIndex = moveIndex;
+          }
+          }
+        }
+        document.onmouseup = function () {
+          tableBody.removeChild(holdP);
+          father.classList.remove('choice');
+          document.onmousemove = null;
+          document.onmouseup = null;
+        }
+      }
+    }
+  </script>
+</body>
+
+</html>
